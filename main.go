@@ -30,10 +30,9 @@ import (
 
 var version = "0.1.0-dev"
 
-// Ollama releases whose bundled llama-server has been tested with rerankd (inclusive range).
-// Empty until an integration run against a real Ollama passes; until then the bundled engine
-// needs --allow-untested-ollama.
-var testedOllama = [2]string{"", ""}
+// Ollama releases whose bundled llama-server passed integration/modal_integration.py (inclusive
+// range). Other versions need --allow-untested-ollama.
+var testedOllama = [2]string{"0.40.13", "0.40.13"}
 
 type multiFlag []string
 

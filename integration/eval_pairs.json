@@ -1,0 +1,90 @@
+[
+ {
+  "query": "How do I reset my router to factory settings?",
+  "documents": [
+   "Hold the reset button on the back of the router for 10 seconds until the lights flash; it restarts with factory settings.",
+   "To change your Wi-Fi password, log in to the router admin page and open Wireless settings.",
+   "Our routers come with a two-year warranty covering hardware faults.",
+   "A factory reset erases all custom settings, so note your network name and password first.",
+   "Bananas are a good source of potassium.",
+   "Unplugging the router for 30 seconds restarts it but keeps your settings."
+  ]
+ },
+ {
+  "query": "What is the capital of Australia?",
+  "documents": [
+   "Sydney is the largest city in Australia.",
+   "Canberra is the capital city of Australia, chosen as a compromise between Sydney and Melbourne.",
+   "Melbourne was the temporary seat of government until 1927.",
+   "Australia has six states and two major mainland territories.",
+   "The Great Barrier Reef lies off the coast of Queensland.",
+   "Wellington is the capital of New Zealand."
+  ]
+ },
+ {
+  "query": "side effects of ibuprofen",
+  "documents": [
+   "Common side effects of ibuprofen include stomach pain, heartburn and nausea.",
+   "Ibuprofen can raise the risk of stomach bleeding, especially at high doses or with long use.",
+   "Paracetamol is often recommended for people who cannot take anti-inflammatory drugs.",
+   "Ibuprofen belongs to a class of drugs called NSAIDs.",
+   "Store medicines out of reach of children.",
+   "The football match ended in a draw."
+  ]
+ },
+ {
+  "query": "python read a file line by line",
+  "documents": [
+   "with open('data.txt') as f:\n    for line in f:\n        print(line.rstrip())",
+   "Use json.load(f) to parse a JSON file into Python objects.",
+   "In Python, f.readlines() returns a list of all lines, which loads the whole file into memory.",
+   "Pythons are large non-venomous snakes found in Africa and Asia.",
+   "The os.listdir function lists the files in a directory.",
+   "Reading a file line by line keeps memory use low for large files."
+  ]
+ },
+ {
+  "query": "best time to visit Japan for cherry blossoms",
+  "documents": [
+   "Cherry blossoms in Tokyo usually peak in late March to early April.",
+   "In Hokkaido the blossoms arrive later, often in early May.",
+   "Japan's rainy season runs from early June to mid-July in most regions.",
+   "The Japan Rail Pass offers unlimited travel on most JR trains.",
+   "Autumn leaves in Kyoto are at their best in late November.",
+   "Sushi is traditionally eaten with the fingers."
+  ]
+ },
+ {
+  "query": "Wie lange dauert es, Nudeln zu kochen?",
+  "documents": [
+   "Die meisten getrockneten Nudeln brauchen 8 bis 12 Minuten in kochendem Salzwasser.",
+   "Frische Nudeln sind schon nach 2 bis 4 Minuten gar.",
+   "Reis sollte vor dem Kochen gewaschen werden.",
+   "Pasta should be cooked in plenty of boiling salted water until al dente.",
+   "Der Zug nach Berlin hat 20 Minuten Verspätung.",
+   "Tomatensoße schmeckt besser, wenn sie lange köchelt."
+  ]
+ },
+ {
+  "query": "how do vaccines work",
+  "documents": [
+   "Vaccines train the immune system to recognise a germ by showing it a harmless piece or weakened form of it.",
+   "After vaccination the body keeps memory cells that respond quickly if the real germ appears.",
+   "Antibiotics kill bacteria but do not work against viruses.",
+   "The first vaccine was developed by Edward Jenner in 1796 against smallpox.",
+   "Regular exercise improves heart health.",
+   "A vaccine does not cause the disease it protects against."
+  ]
+ },
+ {
+  "query": "rerank documents with a local model",
+  "documents": [
+   "A reranker scores each query and document pair and sorts the documents by relevance.",
+   "Cross-encoders read the query and document together, which is slower but more accurate than comparing embeddings.",
+   "llama-server can serve reranking models with the --rerank flag.",
+   "Vector databases store embeddings for fast similarity search.",
+   "The best pizza in Naples is a matter of local debate.",
+   "Ollama runs language models locally."
+  ]
+ }
+]

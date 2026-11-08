@@ -71,7 +71,7 @@ behaves differently.
 |---|---|---|
 | Your llama-server (default) | `rerankd` or `rerankd --engine /path/to/llama-server` | Recommended. Starts one llama-server per reranker on demand. |
 | Your running server | `rerankd --backend http://127.0.0.1:8012` | You already run `llama-server --rerank -m model.gguf` yourself. Add `--sigmoid` for BERT-style models. |
-| Ollama's bundled llama-server | `rerankd --use-ollama-engine` | **Experimental.** No separate llama.cpp install. Ollama's bundled build is an internal detail that can change between releases, so rerankd checks that it supports `--rerank` and accepts only Ollama versions it was tested with (none yet; `--allow-untested-ollama` overrides). |
+| Ollama's bundled llama-server | `rerankd --use-ollama-engine` | **Experimental.** No separate llama.cpp install. Ollama's bundled build is an internal detail that can change between releases, so rerankd checks that it supports `--rerank` and accepts only Ollama versions it was tested with (0.40.13 so far; `--allow-untested-ollama` overrides). |
 
 **GPU memory.** The reranker runs in its own process, which Ollama's scheduler does not see. A 0.6B
 reranker needs well under 1 GB, but on a full GPU use `--gpu-layers 0` to keep it on the CPU, and
@@ -137,6 +137,22 @@ gh attestation verify rerankd_*_linux_amd64.tar.gz --repo rushlabs-ai/rerankd
 ```
 
 Or build from source (Go 1.24+): `go install github.com/rushlabs-ai/rerankd@latest`.
+
+## Tested against the real thing
+
+`integration/modal_integration.py` runs rerankd on a [Modal](https://modal.com) container with the
+official Ollama 0.40.13 and llama.cpp b11980 release builds (both checksum-pinned), and compares
+the rankings with the original Hugging Face models run in PyTorch. Latest run, 8 queries × 6 documents, CPU:
+
+| Model (GGUF via Ollama) | Top result matches the original | Mean Kendall τ | Warm request, 6 documents |
+|---|---|---|---|
+| ggml-org/Qwen3-Reranker-0.6B-Q8_0 | 8/8 | 0.98 | ~0.5 s |
+| gpustack/bge-reranker-v2-m3 Q8_0 | 8/8 | 0.98 | ~0.2 s |
+
+The same run checks every endpoint, streaming passthrough, `--use-ollama-engine` (identical
+scores), and `rerankd check`. It also confirmed that one widely shared Qwen3-Reranker upload on
+the Ollama library (`dengcao/Qwen3-Reranker-0.6B:Q8_0`) has no reranking head: rerankd refuses it.
+Run it yourself with `./integration/run.sh`.
 
 ## Development
 
