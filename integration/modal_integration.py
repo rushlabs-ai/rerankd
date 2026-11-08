@@ -271,7 +271,7 @@ def reference() -> dict:
 
     name, rev = MODELS["qwen3"]["hf"]
     tok = AutoTokenizer.from_pretrained(name, revision=rev, padding_side="left")
-    model = AutoModelForCausalLM.from_pretrained(name, revision=rev, torch_dtype=torch.float32).eval()
+    model = AutoModelForCausalLM.from_pretrained(name, revision=rev, dtype=torch.float32).eval()
     yes, no = tok.convert_tokens_to_ids("yes"), tok.convert_tokens_to_ids("no")
     prefix = ("<|im_start|>system\nJudge whether the Document meets the requirements based on the Query and the Instruct "
               "provided. Note that the answer can only be \"yes\" or \"no\".<|im_end|>\n<|im_start|>user\n")
@@ -288,7 +288,7 @@ def reference() -> dict:
 
     name, rev = MODELS["bge"]["hf"]
     tok = AutoTokenizer.from_pretrained(name, revision=rev)
-    model = AutoModelForSequenceClassification.from_pretrained(name, revision=rev, torch_dtype=torch.float32).eval()
+    model = AutoModelForSequenceClassification.from_pretrained(name, revision=rev, dtype=torch.float32).eval()
     scores = []
     for p in pairs:
         batch = tok([[p["query"], d] for d in p["documents"]], padding=True, truncation=True, max_length=512,
