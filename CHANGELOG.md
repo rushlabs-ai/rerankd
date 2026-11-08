@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-11-08)
 
 - `/api/rerank` (Dify), `/v1/rerank`, `/v2/rerank`, `/rerank` with Jina/Cohere-style requests and
   responses; everything else proxied to Ollama, streaming included.
