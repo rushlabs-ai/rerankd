@@ -2,3 +2,4 @@ dist/
 build/
 /rerankd
 *.exe
+__pycache__/
