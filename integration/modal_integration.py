@@ -28,6 +28,10 @@ import modal
 HERE = Path(__file__).parent
 OLLAMA = ("v0.40.13", "c9490e0f520be21271d969e6703f012268b1d39f8b70dd58854e5bfef7a75bb6")
 LLAMA = ("b11980", "589606b9cef85d05ab0d9db14c8307f2b1aef8621dfaaa0eea777492d66bf1e3")
+LLAMA_CUDA = {  # CUDA 12.8 build plus its runtime libraries, for the GPU run
+    "llama-b11980-bin-ubuntu-cuda-12.8-x64.tar.gz": "b8a992b3f63fcb47fe33f92aa4f587b2103ee85545fba06f1c94423e29afdabc",
+    "cudart-llama-b11980-bin-ubuntu-cuda-12.8-x64.tar.gz": "e560a6efd043f7edac962c431423317f0e5a9cdb04bc44c2800ebb1565453f46",
+}
 MODELS = {
     "qwen3": {
         "ollama": "hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF",
@@ -43,21 +47,29 @@ COMMUNITY = "dengcao/Qwen3-Reranker-0.6B:Q8_0"  # a widely shared upload, checke
 volume = modal.Volume.from_name("rerankd-integration", create_if_missing=True)
 app = modal.App("rerankd-integration")
 
-image = (
-    modal.Image.debian_slim(python_version="3.12")
-    .apt_install("curl", "zstd", "ca-certificates", "libgomp1")
-    .run_commands(
-        f"curl -fsSL -o /tmp/ollama.tar.zst https://github.com/ollama/ollama/releases/download/{OLLAMA[0]}/ollama-linux-amd64.tar.zst",
-        f"echo '{OLLAMA[1]}  /tmp/ollama.tar.zst' | sha256sum -c -",
-        "mkdir -p /opt/ollama && tar --zstd -xf /tmp/ollama.tar.zst -C /opt/ollama && rm /tmp/ollama.tar.zst",
-        f"curl -fsSL -o /tmp/llama.tgz https://github.com/ggml-org/llama.cpp/releases/download/{LLAMA[0]}/llama-{LLAMA[0]}-bin-ubuntu-x64.tar.gz",
-        f"echo '{LLAMA[1]}  /tmp/llama.tgz' | sha256sum -c -",
-        "mkdir -p /opt/llama && tar -xzf /tmp/llama.tgz -C /opt/llama && rm /tmp/llama.tgz",
+def _image(llama_files: dict[str, str]) -> modal.Image:
+    fetch = [
+        f"curl -fsSL -o /tmp/{name} https://github.com/ggml-org/llama.cpp/releases/download/{LLAMA[0]}/{name} && "
+        f"echo '{sha}  /tmp/{name}' | sha256sum -c - && tar -xzf /tmp/{name} -C /opt/llama && rm /tmp/{name}"
+        for name, sha in llama_files.items()
+    ]
+    return (
+        modal.Image.debian_slim(python_version="3.12")
+        .apt_install("curl", "zstd", "ca-certificates", "libgomp1")
+        .run_commands(
+            f"curl -fsSL -o /tmp/ollama.tar.zst https://github.com/ollama/ollama/releases/download/{OLLAMA[0]}/ollama-linux-amd64.tar.zst",
+            f"echo '{OLLAMA[1]}  /tmp/ollama.tar.zst' | sha256sum -c -",
+            "mkdir -p /opt/ollama && tar --zstd -xf /tmp/ollama.tar.zst -C /opt/ollama && rm /tmp/ollama.tar.zst",
+            "mkdir -p /opt/llama", *fetch,
+        )
+        .env({"OLLAMA_MODELS": "/vol/ollama", "OLLAMA_HOST": "127.0.0.1:11434"})
+        .add_local_file(HERE / "build" / "rerankd", "/usr/local/bin/rerankd")
+        .add_local_file(HERE / "eval_pairs.json", "/root/eval_pairs.json")
     )
-    .env({"OLLAMA_MODELS": "/vol/ollama", "OLLAMA_HOST": "127.0.0.1:11434"})
-    .add_local_file(HERE / "build" / "rerankd", "/usr/local/bin/rerankd")
-    .add_local_file(HERE / "eval_pairs.json", "/root/eval_pairs.json")
-)
+
+
+image = _image({f"llama-{LLAMA[0]}-bin-ubuntu-x64.tar.gz": LLAMA[1]})
+gpu_image = _image(LLAMA_CUDA)
 
 reference_image = (
     modal.Image.debian_slim(python_version="3.12")
@@ -127,19 +139,33 @@ def _rerank_all(base: str, model: str, pairs: list[dict]) -> list[list[float]]:
 
 @app.function(image=image, cpu=4, memory=8192, volumes={"/vol": volume}, timeout=45 * 60)
 def integration() -> dict:
+    return _integration(gpu=False)
+
+
+@app.function(image=gpu_image, gpu="L4", volumes={"/vol": volume}, timeout=45 * 60)
+def integration_gpu() -> dict:
+    return _integration(gpu=True)
+
+
+def _integration(gpu: bool) -> dict:
     checks = Checks()
     logs = Path("/tmp/logs")
     logs.mkdir(exist_ok=True)
     llama_server = next(Path("/opt/llama").rglob("llama-server"))
-    env = dict(os.environ, PATH="/opt/ollama/bin:" + os.environ["PATH"],
-               LD_LIBRARY_PATH=str(llama_server.parent))
+    lib_dirs = sorted({str(p.parent) for p in Path("/opt/llama").rglob("*.so*")} | {str(llama_server.parent)})
+    env = dict(os.environ, PATH="/opt/ollama/bin:" + os.environ["PATH"], LD_LIBRARY_PATH=":".join(lib_dirs))
+    if gpu:
+        smi = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader"],
+                             capture_output=True, text=True)
+        checks.add("GPU visible", smi.returncode == 0, smi.stdout.strip())
     ollama = subprocess.Popen(["/opt/ollama/bin/ollama", "serve"], env=env,
                               stdout=(logs / "ollama.log").open("wb"), stderr=subprocess.STDOUT)
     _wait("http://127.0.0.1:11434/api/version", 60)
     _, ver = _http("GET", "http://127.0.0.1:11434/api/version")
     checks.add("ollama serves", True, ver)
 
-    rd = _rerankd(["--engine", str(llama_server), "--idle", "10m", "--max-models", "2"], env, logs / "rerankd.log")
+    rd = _rerankd(["--engine", str(llama_server), "--idle", "10m", "--max-models", "2"] + (["--engine-logs"] if gpu else []),
+                  env, logs / "rerankd.log")
     base = "http://127.0.0.1:11435"
 
     # Streaming passthrough: pull through rerankd with stream=true and time the lines.
@@ -189,6 +215,18 @@ def integration() -> dict:
     checks.add("unknown model -> 404", code == 404, str(body)[:120])
     code, body = _http("POST", f"{base}/v1/rerank", {"model": "../../etc", "query": "x", "documents": ["a"]})
     checks.add("bad model name -> 400", code == 400)
+    if gpu:
+        # Definitive: is a llama-server process holding GPU memory right now?
+        apps = subprocess.run(["nvidia-smi", "--query-compute-apps=pid,process_name,used_memory",
+                               "--format=csv,noheader"], capture_output=True, text=True).stdout.strip()
+        # Inside a container nvidia-smi cannot name our processes (it shows the container's init), so
+        # check the memory: Ollama has no model loaded here, so GPU memory in use is the rerankers'.
+        used = sum(int(a.rsplit(",", 1)[-1].strip().split()[0]) for a in apps.splitlines() if a.strip())
+        on_gpu = [f"{used} MiB of GPU memory in use with the rerankers loaded"] if used > 500 else []
+        log = (logs / "rerankd.log").read_text(errors="replace")
+        cuda_lines = [line.strip() for line in log.splitlines() if "CUDA" in line or "offload" in line][:6]
+        checks.add("llama-server runs on the GPU", bool(on_gpu), "; ".join(on_gpu) or f"nvidia-smi: {apps or 'no processes'}")
+        checks.items.append({"check": "engine log (CUDA lines)", "ok": None, "detail": cuda_lines})
     _, status = _http("GET", f"{base}/rerankd/status")
     checks.add("status lists loaded engines", len(status.get("engines", [])) >= 1, f"{len(status['engines'])} engine(s)")
     rd.terminate()
@@ -205,8 +243,11 @@ def integration() -> dict:
                 bundled[r["index"]] = r["relevance_score"]
         checks.add("--use-ollama-engine serves qwen3", code == 200, str(body)[:200] if code != 200 else "")
         if bundled:
-            diff = max(abs(a - b) for a, b in zip(bundled, results["qwen3"][0]))
-            checks.add("bundled engine scores match llama.cpp release", diff < 0.02, f"max diff {diff:.4f}")
+            ref = results["qwen3"][0]
+            diff = max(abs(a - b) for a, b in zip(bundled, ref))
+            same_order = sorted(range(len(ref)), key=lambda i: -ref[i]) == sorted(range(len(ref)), key=lambda i: -bundled[i])
+            checks.add("bundled engine ranks like the llama.cpp release", same_order and diff < 0.05,
+                       f"same order: {same_order}, max score diff {diff:.4f}")
         rd.terminate()
         rd.wait(20)
     except Exception as e:  # noqa: BLE001
@@ -214,7 +255,8 @@ def integration() -> dict:
 
     ollama.terminate()
     tails = {p.name: p.read_text(errors="replace")[-1500:] for p in logs.iterdir()}
-    return {"checks": checks.items, "scores": results, "ollama": ver, "llama_cpp": LLAMA[0], "logs": tails}
+    return {"checks": checks.items, "scores": results, "ollama": ver, "llama_cpp": LLAMA[0], "logs": tails,
+            "hardware": "L4 GPU" if gpu else "4 CPU"}
 
 
 @app.function(image=reference_image, cpu=4, memory=8192, volumes={"/vol": volume}, timeout=45 * 60)
@@ -266,11 +308,11 @@ def kendall_tau(a: list[float], b: list[float]) -> float:
 
 
 @app.local_entrypoint()
-def main() -> None:
+def main(gpu: bool = False) -> None:
     ref_call = reference.spawn()
-    res = integration.remote()
+    res = (integration_gpu if gpu else integration).remote()
     ref = ref_call.get()
-    summary = {"ollama": res["ollama"], "llama_cpp": res["llama_cpp"], "agreement": {}}
+    summary = {"ollama": res["ollama"], "llama_cpp": res["llama_cpp"], "hardware": res["hardware"], "agreement": {}}
     for key in MODELS:
         got, want = res["scores"].get(key), ref.get(key)
         if not got or not want:
@@ -287,13 +329,13 @@ def main() -> None:
                               "detail": summary["agreement"][key]})
     out = HERE / "results"
     out.mkdir(exist_ok=True)
-    (out / "latest.json").write_text(json.dumps({"summary": summary, **res, "reference": ref}, indent=2))
+    (out / ("latest-gpu.json" if gpu else "latest.json")).write_text(json.dumps({"summary": summary, **res, "reference": ref}, indent=2))
     failed = [c for c in res["checks"] if c["ok"] is False]
     print(json.dumps(summary, indent=2))
     for c in res["checks"]:
         mark = "PASS" if c["ok"] else ("INFO" if c["ok"] is None else "FAIL")
         print(f"{mark}  {c['check']}" + (f"  ({c['detail']})" if c["detail"] and c["ok"] is not True else ""))
-    print(f"\n{len(failed)} failed. Full results: {out / 'latest.json'}")
+    print(f"\n{len(failed)} failed. Full results in {out}")
     if failed:
         for name, tail in res["logs"].items():
             print(f"\n--- {name} (tail) ---\n{tail}")

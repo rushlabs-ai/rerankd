@@ -142,17 +142,19 @@ Or build from source (Go 1.24+): `go install github.com/rushlabs-ai/rerankd@late
 
 `integration/modal_integration.py` runs rerankd on a [Modal](https://modal.com) container with the
 official Ollama 0.40.13 and llama.cpp b11980 release builds (both checksum-pinned), and compares
-the rankings with the original Hugging Face models run in PyTorch. Latest run, 8 queries × 6 documents, CPU:
+the rankings with the original Hugging Face models run in PyTorch. Latest runs, 8 queries × 6 documents:
 
-| Model (GGUF via Ollama) | Top result matches the original | Mean Kendall τ | Warm request, 6 documents |
+| Model (GGUF via Ollama) | Top result matches the original | Mean Kendall τ (CPU / GPU) | Warm request, 6 documents (4 CPU / L4 GPU) |
 |---|---|---|---|
-| ggml-org/Qwen3-Reranker-0.6B-Q8_0 | 8/8 | 0.98 | ~0.5 s |
-| gpustack/bge-reranker-v2-m3 Q8_0 | 8/8 | 0.98 | ~0.2 s |
+| ggml-org/Qwen3-Reranker-0.6B-Q8_0 | 8/8 | 0.98 / 1.00 | ~570 ms / ~95 ms |
+| gpustack/bge-reranker-v2-m3 Q8_0 | 8/8 | 0.98 / 0.99 | ~165 ms / ~55 ms |
+
+The GPU run uses llama.cpp's official CUDA 12.8 build and confirms the rerankers sit in GPU memory.
 
 The same run checks every endpoint, streaming passthrough, `--use-ollama-engine` (identical
 scores), and `rerankd check`. It also confirmed that one widely shared Qwen3-Reranker upload on
 the Ollama library (`dengcao/Qwen3-Reranker-0.6B:Q8_0`) has no reranking head: rerankd refuses it.
-Run it yourself with `./integration/run.sh`.
+Run it yourself with `./integration/run.sh` (add `--gpu` for the L4 run).
 
 ## Development
 
