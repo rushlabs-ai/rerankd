@@ -1,0 +1,46 @@
+name: ollama-compat
+
+# Weekly: does --use-ollama-engine still work with the newest Ollama release that is at least
+# 7 days old? Passing does not change the accepted range by itself; a maintainer raises
+# testedOllama in main.go after a full integration run.
+on:
+  schedule:
+    - cron: "23 5 * * 1"
+  pull_request:
+    paths: [".github/workflows/ollama-compat.yml", "integration/ollama_compat.py"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Ollama release to test, e.g. v0.40.15 (default: newest at least 7 days old)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  compat:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.27.x"
+          cache: false
+      - name: Pick the Ollama release (7+ days old, checksums agree)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: python3 integration/ollama_compat.py pick "$TAG" >> "$GITHUB_ENV"
+      - name: Install Ollama (checksum verified)
+        run: |
+          set -eu
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 -o /tmp/ollama.tar.zst "https://github.com/ollama/ollama/releases/download/${OLLAMA_TAG}/ollama-linux-amd64.tar.zst"
+          echo "${OLLAMA_SHA256}  /tmp/ollama.tar.zst" | sha256sum -c -
+          mkdir -p "$HOME/ollama" && tar --zstd -xf /tmp/ollama.tar.zst -C "$HOME/ollama"
+          echo "$HOME/ollama/bin" >> "$GITHUB_PATH"
+      - run: CGO_ENABLED=0 go build -trimpath -o rerankd .
+      - name: Rankings through Ollama's bundled llama-server
+        run: python3 integration/ollama_compat.py check
