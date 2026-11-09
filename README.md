@@ -71,7 +71,7 @@ behaves differently.
 |---|---|---|
 | Your llama-server (default) | `rerankd` or `rerankd --engine /path/to/llama-server` | Recommended. Starts one llama-server per reranker on demand. |
 | Your running server | `rerankd --backend http://127.0.0.1:8012` | You already run `llama-server --rerank -m model.gguf` yourself. Add `--sigmoid` for BERT-style models. |
-| Ollama's bundled llama-server | `rerankd --use-ollama-engine` | **Experimental.** No separate llama.cpp install. Ollama's bundled build is an internal detail that can change between releases, so rerankd checks that it supports `--rerank` and accepts only Ollama versions it was tested with (0.40.13 so far; `--allow-untested-ollama` overrides). |
+| Ollama's bundled llama-server | `rerankd --use-ollama-engine` | **Experimental.** No separate llama.cpp install. Ollama's bundled build is an internal detail that can change between releases, so rerankd checks that it supports `--rerank` and accepts only Ollama versions it was tested with (0.40.11 to 0.40.13 so far; `--allow-untested-ollama` overrides). |
 
 **GPU memory.** The reranker runs in its own process, which Ollama's scheduler does not see. A 0.6B
 reranker needs well under 1 GB, but on a full GPU use `--gpu-layers 0` to keep it on the CPU, and

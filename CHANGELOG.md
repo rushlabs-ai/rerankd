@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1
+
+- `--use-ollama-engine` accepts Ollama 0.40.11 to 0.40.13 (was 0.40.13 only); each passed the full
+  integration run.
+- A weekly CI check tests the newest Ollama release once it is at least 7 days old, with its
+  checksum confirmed against both GitHub and Ollama's sha256sum.txt.
+
 ## 0.1.0 (2026-11-08)
 
 - `/api/rerank` (Dify), `/v1/rerank`, `/v2/rerank`, `/rerank` with Jina/Cohere-style requests and
