@@ -27,6 +27,11 @@ import modal
 
 HERE = Path(__file__).parent
 OLLAMA = ("v0.40.13", "c9490e0f520be21271d969e6703f012268b1d39f8b70dd58854e5bfef7a75bb6")
+# Test another Ollama release: OLLAMA_RELEASE=v0.40.12=<sha256 of ollama-linux-amd64.tar.zst>.
+# Results then go to results/ollama-<version>.json instead of latest.json.
+if os.environ.get("OLLAMA_RELEASE"):
+    _tag, _sha = os.environ["OLLAMA_RELEASE"].split("=", 1)
+    OLLAMA = (_tag, _sha)
 LLAMA = ("b11980", "589606b9cef85d05ab0d9db14c8307f2b1aef8621dfaaa0eea777492d66bf1e3")
 LLAMA_CUDA = {  # CUDA 12.8 build plus its runtime libraries, for the GPU run
     "llama-b11980-bin-ubuntu-cuda-12.8-x64.tar.gz": "b8a992b3f63fcb47fe33f92aa4f587b2103ee85545fba06f1c94423e29afdabc",
@@ -47,22 +52,53 @@ COMMUNITY = "dengcao/Qwen3-Reranker-0.6B:Q8_0"  # a widely shared upload, checke
 volume = modal.Volume.from_name("rerankd-integration", create_if_missing=True)
 app = modal.App("rerankd-integration")
 
+CACHE = HERE / "build" / "cache"
+
+
+def _sha256(path: Path) -> str:
+    import hashlib
+
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def _local(url: str, sha: str) -> Path:
+    """Download a release file once on this machine and verify it. The images are built from
+    these verified copies, so a run does not depend on Modal's builders reaching GitHub."""
+    dest = CACHE / f"{sha[:16]}-{url.rsplit('/', 1)[-1]}"
+    if modal.is_local() and not (dest.exists() and _sha256(dest) == sha):
+        CACHE.mkdir(parents=True, exist_ok=True)
+        part = dest.with_name(dest.name + ".part")
+        subprocess.run(["curl", "-fsSL", "--retry", "5", "--retry-all-errors", "--retry-delay", "5", "-o", str(part), url],
+                       check=True)
+        if _sha256(part) != sha:
+            part.unlink()
+            raise SystemExit(f"checksum mismatch for {url}")
+        part.rename(dest)
+    return dest
+
+
 def _image(llama_files: dict[str, str]) -> modal.Image:
-    fetch = [
-        f"curl -fsSL -o /tmp/{name} https://github.com/ggml-org/llama.cpp/releases/download/{LLAMA[0]}/{name} && "
-        f"echo '{sha}  /tmp/{name}' | sha256sum -c - && tar -xzf /tmp/{name} -C /opt/llama && rm /tmp/{name}"
-        for name, sha in llama_files.items()
-    ]
-    return (
+    ollama_url = f"https://github.com/ollama/ollama/releases/download/{OLLAMA[0]}/ollama-linux-amd64.tar.zst"
+    img = (
         modal.Image.debian_slim(python_version="3.12")
         .apt_install("curl", "zstd", "ca-certificates", "libgomp1")
+        .add_local_file(_local(ollama_url, OLLAMA[1]), "/tmp/ollama.tar.zst", copy=True)
         .run_commands(
-            f"curl -fsSL -o /tmp/ollama.tar.zst https://github.com/ollama/ollama/releases/download/{OLLAMA[0]}/ollama-linux-amd64.tar.zst",
-            f"echo '{OLLAMA[1]}  /tmp/ollama.tar.zst' | sha256sum -c -",
+            f"echo '{OLLAMA[1]}  /tmp/ollama.tar.zst' | sha256sum -c -",  # checked again inside the image
             "mkdir -p /opt/ollama && tar --zstd -xf /tmp/ollama.tar.zst -C /opt/ollama && rm /tmp/ollama.tar.zst",
-            "mkdir -p /opt/llama", *fetch,
+            "mkdir -p /opt/llama",
         )
-        .env({"OLLAMA_MODELS": "/vol/ollama", "OLLAMA_HOST": "127.0.0.1:11434"})
+    )
+    for name, sha in llama_files.items():
+        url = f"https://github.com/ggml-org/llama.cpp/releases/download/{LLAMA[0]}/{name}"
+        img = img.add_local_file(_local(url, sha), f"/tmp/{name}", copy=True).run_commands(
+            f"echo '{sha}  /tmp/{name}' | sha256sum -c - && tar -xzf /tmp/{name} -C /opt/llama && rm /tmp/{name}")
+    return (
+        img.env({"OLLAMA_MODELS": "/vol/ollama", "OLLAMA_HOST": "127.0.0.1:11434"})
         .add_local_file(HERE / "build" / "rerankd", "/usr/local/bin/rerankd")
         .add_local_file(HERE / "eval_pairs.json", "/root/eval_pairs.json")
     )
@@ -329,7 +365,10 @@ def main(gpu: bool = False) -> None:
                               "detail": summary["agreement"][key]})
     out = HERE / "results"
     out.mkdir(exist_ok=True)
-    (out / ("latest-gpu.json" if gpu else "latest.json")).write_text(json.dumps({"summary": summary, **res, "reference": ref}, indent=2))
+    name = "latest-gpu.json" if gpu else "latest.json"
+    if os.environ.get("OLLAMA_RELEASE"):
+        name = f"ollama-{OLLAMA[0].lstrip('v')}" + ("-gpu" if gpu else "") + ".json"
+    (out / name).write_text(json.dumps({"summary": summary, **res, "reference": ref}, indent=2))
     failed = [c for c in res["checks"] if c["ok"] is False]
     print(json.dumps(summary, indent=2))
     for c in res["checks"]:
