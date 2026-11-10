@@ -146,16 +146,16 @@ the rankings with the original Hugging Face models run in PyTorch. Latest runs, 
 
 | Model (GGUF via Ollama) | Top result matches the original | Mean Kendall τ (CPU / GPU) | Warm request, 6 documents (4 CPU / L4 GPU) |
 |---|---|---|---|
-| ggml-org/Qwen3-Reranker-0.6B-Q8_0 | 8/8 | 0.98 / 1.00 | ~570 ms / ~95 ms |
-| gpustack/bge-reranker-v2-m3 Q8_0 | 8/8 | 0.98 / 0.99 | ~165 ms / ~55 ms |
+| ggml-org/Qwen3-Reranker-0.6B-Q8_0 | 8/8 | 1.000 / 1.000 | ~830 ms / ~95 ms |
+| gpustack/bge-reranker-v2-m3 Q8_0 | 8/8 | 0.975 / 0.992 | ~365 ms / ~55 ms |
 
 Run files: [latest.json](integration/results/latest.json) (4 CPU) and
 [latest-gpu.json](integration/results/latest-gpu.json) (L4 GPU).
 
 The GPU run uses llama.cpp's official CUDA 12.8 build and confirms the rerankers sit in GPU memory.
 
-The same run checks every endpoint, streaming passthrough, `--use-ollama-engine` (identical
-scores), and `rerankd check`. It also confirmed that one widely shared Qwen3-Reranker upload on
+The same run checks every endpoint, streaming passthrough, `--use-ollama-engine` (same
+rankings, identical scores on CPU), and `rerankd check`. It also confirmed that one widely shared Qwen3-Reranker upload on
 the Ollama library (`dengcao/Qwen3-Reranker-0.6B:Q8_0`) has no reranking head: rerankd refuses it.
 Run it yourself with `./integration/run.sh` (add `--gpu` for the L4 run).
 
