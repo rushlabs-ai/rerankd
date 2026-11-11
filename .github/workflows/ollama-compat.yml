@@ -29,6 +29,7 @@ jobs:
         with:
           go-version: "1.27.x"
           cache: false
+          check-latest: true
       - name: Pick the Ollama release (7+ days old, checksums agree)
         env:
           GH_TOKEN: ${{ github.token }}

@@ -23,6 +23,7 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
           cache: false
+          check-latest: true
       - run: test -z "$(gofmt -l .)"
         shell: bash
       - run: go vet ./...
@@ -40,5 +41,6 @@ jobs:
         with:
           go-version: "1.27.x"
           cache: false
+          check-latest: true
       # Pinned; the module is verified against the Go checksum database.
       - run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
