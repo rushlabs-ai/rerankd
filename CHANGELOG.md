@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 (2026-11-11)
+
+- Built with Go 1.27.4, which fixes an HTTP/1 server crash in Go's net/http (GO-2026-6859). No code
+  changes. Upgrade if you run 0.1.1 or 0.1.0.
+- CI and release builds now always use the newest Go patch release.
+
 ## 0.1.1
 
 - `--use-ollama-engine` accepts Ollama 0.40.11 to 0.40.13 (was 0.40.13 only); each passed the full
