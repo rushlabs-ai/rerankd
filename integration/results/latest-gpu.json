@@ -1,0 +1,431 @@
+{
+  "summary": {
+    "ollama": {
+      "version": "0.40.13"
+    },
+    "llama_cpp": "b11980",
+    "hardware": "L4 GPU",
+    "agreement": {
+      "qwen3": {
+        "mean_kendall_tau": 1.0,
+        "min_tau": 1.0,
+        "top1": "8/8",
+        "max_score_diff": 0.0472,
+        "seconds_for_8_queries": 0.74
+      },
+      "bge": {
+        "mean_kendall_tau": 0.992,
+        "min_tau": 0.933,
+        "top1": "8/8",
+        "max_score_diff": 0.0679,
+        "seconds_for_8_queries": 0.42
+      }
+    }
+  },
+  "checks": [
+    {
+      "check": "GPU visible",
+      "ok": true,
+      "detail": "NVIDIA L4, 23034 MiB"
+    },
+    {
+      "check": "ollama serves",
+      "ok": true,
+      "detail": {
+        "version": "0.40.13"
+      }
+    },
+    {
+      "check": "pull hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF through rerankd (streamed)",
+      "ok": true,
+      "detail": "9 chunks over 0.3s"
+    },
+    {
+      "check": "pull hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 through rerankd (streamed)",
+      "ok": true,
+      "detail": "7 chunks over 0.2s"
+    },
+    {
+      "check": "pull dengcao/Qwen3-Reranker-0.6B:Q8_0 through rerankd (streamed)",
+      "ok": true,
+      "detail": "9 chunks over 0.8s"
+    },
+    {
+      "check": "proxied /api/tags",
+      "ok": true,
+      "detail": "3 models"
+    },
+    {
+      "check": "rerankd check hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF",
+      "ok": true,
+      "detail": "OK: llama-server can serve this as a reranker. Scores: probabilities (0..1)."
+    },
+    {
+      "check": "rerankd check hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0",
+      "ok": true,
+      "detail": "OK: llama-server can serve this as a reranker. Scores: logits, mapped to 0..1 with a sigmoid unless --raw-scores."
+    },
+    {
+      "check": "rerankd check dengcao/Qwen3-Reranker-0.6B:Q8_0 (informational)",
+      "ok": null,
+      "detail": "file:          /vol/ollama/blobs/sha256-ad693e485b0b193e1fa84c92c1fc195c05958d7b836fcb201c3828a31a3eb8ea\narchitecture:  qwen3\npooling:       -1 (4 = rank)\nrerank head:   false\nrerank prompt: false\nrerankd: this qwen3 GGUF is not a usable reranker: it lacks the cls.output.weight tensor, the rerank chat template. It was probably converted as a plain chat model. Re-convert the Hugging Face model with a current llama.cpp convert_hf_to_gguf.py (it detects Qwen3-Reranker), or pull a GGUF that was converted that way"
+    },
+    {
+      "check": "qwen3: /api/rerank (Dify shape)",
+      "ok": true,
+      "detail": "cold start 2.7s; top index 0"
+    },
+    {
+      "check": "qwen3: /v1/rerank top_n + documents",
+      "ok": true,
+      "detail": "warm 94 ms for 6 documents"
+    },
+    {
+      "check": "bge: /api/rerank (Dify shape)",
+      "ok": true,
+      "detail": "cold start 3.5s; top index 0"
+    },
+    {
+      "check": "bge: /v1/rerank top_n + documents",
+      "ok": true,
+      "detail": "warm 55 ms for 6 documents"
+    },
+    {
+      "check": "unknown model -> 404",
+      "ok": true,
+      "detail": "{'error': {'message': 'model not found: nope:latest (pull it with: ollama pull nope:latest)', 'type': 'not_found_error'}"
+    },
+    {
+      "check": "bad model name -> 400",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "llama-server runs on the GPU",
+      "ok": true,
+      "detail": "5344 MiB of GPU memory in use with the rerankers loaded"
+    },
+    {
+      "check": "engine log (CUDA lines)",
+      "ok": null,
+      "detail": []
+    },
+    {
+      "check": "status lists loaded engines",
+      "ok": true,
+      "detail": "2 engine(s)"
+    },
+    {
+      "check": "--use-ollama-engine serves qwen3",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "bundled engine ranks like the llama.cpp release",
+      "ok": true,
+      "detail": "same order: True, max score diff 0.0386"
+    },
+    {
+      "check": "qwen3: ranking matches the Hugging Face model",
+      "ok": true,
+      "detail": {
+        "mean_kendall_tau": 1.0,
+        "min_tau": 1.0,
+        "top1": "8/8",
+        "max_score_diff": 0.0472,
+        "seconds_for_8_queries": 0.74
+      }
+    },
+    {
+      "check": "bge: ranking matches the Hugging Face model",
+      "ok": true,
+      "detail": {
+        "mean_kendall_tau": 0.992,
+        "min_tau": 0.933,
+        "top1": "8/8",
+        "max_score_diff": 0.0679,
+        "seconds_for_8_queries": 0.42
+      }
+    }
+  ],
+  "scores": {
+    "qwen3": [
+      [
+        0.9993355870246887,
+        0.29986628890037537,
+        0.01602734439074993,
+        0.9949199557304382,
+        2.034938006545417e-05,
+        0.7442542910575867
+      ],
+      [
+        0.2328091859817505,
+        0.9979307651519775,
+        0.06782341003417969,
+        0.0023025365080684423,
+        0.001152080250903964,
+        0.014687015675008297
+      ],
+      [
+        0.9997046589851379,
+        0.9803187251091003,
+        0.002003122353926301,
+        0.5652870535850525,
+        8.563183655496687e-05,
+        2.7795254936791025e-05
+      ],
+      [
+        0.9912596344947815,
+        0.0009398565744049847,
+        0.9847286343574524,
+        0.00031055419822223485,
+        0.003061846364289522,
+        0.9337698221206665
+      ],
+      [
+        0.9985835552215576,
+        0.9831565618515015,
+        0.900303065776825,
+        1.3252368262328673e-05,
+        0.9726913571357727,
+        8.847046956361737e-06
+      ],
+      [
+        0.999398946762085,
+        0.9989349246025085,
+        6.047924398444593e-05,
+        0.05328696593642235,
+        7.83984360168688e-05,
+        0.0007007277454249561
+      ],
+      [
+        0.9843639731407166,
+        0.7880640625953674,
+        0.0007082137744873762,
+        0.08177817612886429,
+        3.7508994864765555e-05,
+        0.7562629580497742
+      ],
+      [
+        0.9955726861953735,
+        0.01727336458861828,
+        0.9994526505470276,
+        0.014990156516432762,
+        0.00022321756114251912,
+        0.23859386146068573
+      ]
+    ],
+    "qwen3_seconds": 0.74,
+    "bge": [
+      [
+        0.9900157228242157,
+        0.0035209498393290635,
+        5.2553753394704576e-05,
+        0.23968530359865342,
+        1.6336461227084995e-05,
+        0.006618251132077581
+      ],
+      [
+        0.8645771227583282,
+        0.9985066139096155,
+        0.10125656394401181,
+        0.007691173273704264,
+        0.00281190278255091,
+        0.04863283723066612
+      ],
+      [
+        0.999670511053123,
+        0.8457751044949052,
+        0.0006844521056289044,
+        0.048135602235437815,
+        0.00011487442619564578,
+        1.6016427070818926e-05
+      ],
+      [
+        0.018293187028177532,
+        0.07539546586834146,
+        0.9826473850425406,
+        0.007497490881643258,
+        0.0011039632725780425,
+        0.7394681734881171
+      ],
+      [
+        0.8481585340387111,
+        0.01934477373776203,
+        0.0009529999747761808,
+        1.6314960224604124e-05,
+        0.01447446526781276,
+        1.6160064473612858e-05
+      ],
+      [
+        0.9422162009393584,
+        0.8862419138577718,
+        1.793265545201198e-05,
+        0.00010092319933697486,
+        1.6052606653881252e-05,
+        1.7897272976970338e-05
+      ],
+      [
+        0.9627243451671238,
+        0.47526080413233884,
+        0.00783629732589772,
+        0.04788116759925905,
+        1.606976157215083e-05,
+        0.12488300598487387
+      ],
+      [
+        0.40358705430115377,
+        0.00036121020062716657,
+        0.27234808301249835,
+        6.077779619290836e-05,
+        1.922876239861894e-05,
+        0.043323999519612154
+      ]
+    ],
+    "bge_seconds": 0.42
+  },
+  "ollama": {
+    "version": "0.40.13"
+  },
+  "llama_cpp": "b11980",
+  "logs": {
+    "ollama.log": "  127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:28 | 200 |  22.47ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:28 | 200 |  28.85ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:28 | 200 |  26.86ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:28 | 200 |  24.56ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:28 | 200 |  27.42ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:32 | 200 |  25.74ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:32 | 200 |  22.82ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:32 | 200 |  22.44ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:32 | 200 |  22.89ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:32 | 200 |  28.18ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:32 | 200 |  21.66ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:32 | 200 |  21.41ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:32 | 200 |   22.2ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:32 | 200 |   22.1ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:32 | 404 |  52.23ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/08 - 06:22:33 | 200 | 81.476\u00b5s |       127.0.0.1 | GET      \"/api/version\"\n[GIN] 2026/11/08 - 06:22:33 | 200 |  31.81ms |       127.0.0.1 | POST     \"/api/show\"\n",
+    "rerankd.log": "t = 16005112\n0.03.856.272 I slot launch_slot_: id  0 | task 84 | processing task, is_child = 0\n0.03.856.281 I slot get_availabl: id  1 | task -1 | selected slot by LRU, n_tokens = 0, t_last = 16005192\n0.03.856.282 I slot launch_slot_: id  1 | task 83 | processing task, is_child = 0\n0.03.863.595 I slot      release: id  0 | task 84 | stop processing: n_tokens = 25, truncated = 0\n0.03.863.654 I slot      release: id  1 | task 83 | stop processing: n_tokens = 26, truncated = 0\n0.03.863.666 I slot get_availabl: id  0 | task -1 | selected slot by LRU, n_tokens = 0, t_last = 16012544\n0.03.863.671 I slot launch_slot_: id  0 | task 86 | processing task, is_child = 0\n0.03.863.672 I slot get_availabl: id  1 | task -1 | selected slot by LRU, n_tokens = 0, t_last = 16012600\n0.03.863.673 I slot launch_slot_: id  1 | task 85 | processing task, is_child = 0\n0.03.870.623 I slot      release: id  0 | task 86 | stop processing: n_tokens = 18, truncated = 0\n0.03.870.677 I slot      release: id  1 | task 85 | stop processing: n_tokens = 23, truncated = 0\n2026/11/08 06:22:32 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=47\n2026/11/08 06:22:32 INFO stopping reranker model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 pid=194\n2026/11/08 06:22:32 INFO stopping reranker model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF pid=168\n0.03.973.537 I srv    operator(): operator(): cleaning up before exit...\n0.07.480.888 I srv    operator(): operator(): cleaning up before exit...\n",
+    "rerankd-ollama-engine.log": "2026/11/08 06:22:33 INFO engine llama-server=/opt/ollama/lib/ollama/llama-server\n2026/11/08 06:22:33 INFO rerankd listening address=127.0.0.1:11435 ollama=http://127.0.0.1:11434 version=0.1.0-dev\n2026/11/08 06:22:33 INFO loading reranker model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF pid=242 port=28416\n2026/11/08 06:22:35 INFO reranker ready model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF seconds=1.514\n2026/11/08 06:22:36 INFO rerank model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF documents=6 ms=2585\n2026/11/08 06:22:36 INFO stopping reranker model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF pid=242\n"
+  },
+  "hardware": "L4 GPU",
+  "reference": {
+    "qwen3": [
+      [
+        0.99916,
+        0.284044,
+        0.011742,
+        0.994255,
+        1.8e-05,
+        0.702921
+      ],
+      [
+        0.200198,
+        0.99726,
+        0.053039,
+        0.002358,
+        0.001108,
+        0.014296
+      ],
+      [
+        0.999633,
+        0.980036,
+        0.001994,
+        0.610613,
+        6.9e-05,
+        2.2e-05
+      ],
+      [
+        0.989676,
+        0.000965,
+        0.980256,
+        0.000298,
+        0.002233,
+        0.91603
+      ],
+      [
+        0.998132,
+        0.980584,
+        0.907318,
+        1.2e-05,
+        0.972443,
+        9e-06
+      ],
+      [
+        0.999378,
+        0.998753,
+        3.2e-05,
+        0.04092,
+        5.8e-05,
+        0.000619
+      ],
+      [
+        0.983308,
+        0.740862,
+        0.00062,
+        0.081374,
+        3.7e-05,
+        0.731726
+      ],
+      [
+        0.994727,
+        0.014828,
+        0.999383,
+        0.014167,
+        0.000212,
+        0.253989
+      ]
+    ],
+    "bge": [
+      [
+        0.991882,
+        0.003413,
+        5.6e-05,
+        0.307601,
+        1.6e-05,
+        0.009601
+      ],
+      [
+        0.836646,
+        0.998315,
+        0.104521,
+        0.007533,
+        0.001455,
+        0.045021
+      ],
+      [
+        0.999669,
+        0.825611,
+        0.000646,
+        0.04673,
+        5.8e-05,
+        1.6e-05
+      ],
+      [
+        0.043212,
+        0.046536,
+        0.985954,
+        0.008154,
+        0.001202,
+        0.699018
+      ],
+      [
+        0.87276,
+        0.018947,
+        0.001021,
+        1.6e-05,
+        0.010424,
+        1.6e-05
+      ],
+      [
+        0.945116,
+        0.896999,
+        1.9e-05,
+        0.000132,
+        1.6e-05,
+        1.8e-05
+      ],
+      [
+        0.958179,
+        0.464164,
+        0.005316,
+        0.031501,
+        1.6e-05,
+        0.063923
+      ],
+      [
+        0.343919,
+        0.000362,
+        0.297538,
+        8e-05,
+        2e-05,
+        0.036531
+      ]
+    ]
+  }
+}

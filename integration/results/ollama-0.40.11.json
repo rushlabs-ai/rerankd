@@ -1,0 +1,416 @@
+{
+  "summary": {
+    "ollama": {
+      "version": "0.40.11"
+    },
+    "llama_cpp": "b11980",
+    "hardware": "4 CPU",
+    "agreement": {
+      "qwen3": {
+        "mean_kendall_tau": 1.0,
+        "min_tau": 1.0,
+        "top1": "8/8",
+        "max_score_diff": 0.0634,
+        "seconds_for_8_queries": 4.72
+      },
+      "bge": {
+        "mean_kendall_tau": 0.975,
+        "min_tau": 0.867,
+        "top1": "8/8",
+        "max_score_diff": 0.0609,
+        "seconds_for_8_queries": 1.3
+      }
+    }
+  },
+  "checks": [
+    {
+      "check": "ollama serves",
+      "ok": true,
+      "detail": {
+        "version": "0.40.11"
+      }
+    },
+    {
+      "check": "pull hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF through rerankd (streamed)",
+      "ok": true,
+      "detail": "9 chunks over 0.4s"
+    },
+    {
+      "check": "pull hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 through rerankd (streamed)",
+      "ok": true,
+      "detail": "7 chunks over 0.2s"
+    },
+    {
+      "check": "pull dengcao/Qwen3-Reranker-0.6B:Q8_0 through rerankd (streamed)",
+      "ok": true,
+      "detail": "9 chunks over 0.5s"
+    },
+    {
+      "check": "proxied /api/tags",
+      "ok": true,
+      "detail": "3 models"
+    },
+    {
+      "check": "rerankd check hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF",
+      "ok": true,
+      "detail": "OK: llama-server can serve this as a reranker. Scores: probabilities (0..1)."
+    },
+    {
+      "check": "rerankd check hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0",
+      "ok": true,
+      "detail": "OK: llama-server can serve this as a reranker. Scores: logits, mapped to 0..1 with a sigmoid unless --raw-scores."
+    },
+    {
+      "check": "rerankd check dengcao/Qwen3-Reranker-0.6B:Q8_0 (informational)",
+      "ok": null,
+      "detail": "file:          /vol/ollama/blobs/sha256-ad693e485b0b193e1fa84c92c1fc195c05958d7b836fcb201c3828a31a3eb8ea\narchitecture:  qwen3\npooling:       -1 (4 = rank)\nrerank head:   false\nrerank prompt: false\nrerankd: this qwen3 GGUF is not a usable reranker: it lacks the cls.output.weight tensor, the rerank chat template. It was probably converted as a plain chat model. Re-convert the Hugging Face model with a current llama.cpp convert_hf_to_gguf.py (it detects Qwen3-Reranker), or pull a GGUF that was converted that way"
+    },
+    {
+      "check": "qwen3: /api/rerank (Dify shape)",
+      "ok": true,
+      "detail": "cold start 2.4s; top index 0"
+    },
+    {
+      "check": "qwen3: /v1/rerank top_n + documents",
+      "ok": true,
+      "detail": "warm 615 ms for 6 documents"
+    },
+    {
+      "check": "bge: /api/rerank (Dify shape)",
+      "ok": true,
+      "detail": "cold start 2.5s; top index 0"
+    },
+    {
+      "check": "bge: /v1/rerank top_n + documents",
+      "ok": true,
+      "detail": "warm 188 ms for 6 documents"
+    },
+    {
+      "check": "unknown model -> 404",
+      "ok": true,
+      "detail": "{'error': {'message': 'model not found: nope:latest (pull it with: ollama pull nope:latest)', 'type': 'not_found_error'}"
+    },
+    {
+      "check": "bad model name -> 400",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "status lists loaded engines",
+      "ok": true,
+      "detail": "2 engine(s)"
+    },
+    {
+      "check": "--use-ollama-engine serves qwen3",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "bundled engine ranks like the llama.cpp release",
+      "ok": true,
+      "detail": "same order: True, max score diff 0.0000"
+    },
+    {
+      "check": "qwen3: ranking matches the Hugging Face model",
+      "ok": true,
+      "detail": {
+        "mean_kendall_tau": 1.0,
+        "min_tau": 1.0,
+        "top1": "8/8",
+        "max_score_diff": 0.0634,
+        "seconds_for_8_queries": 4.72
+      }
+    },
+    {
+      "check": "bge: ranking matches the Hugging Face model",
+      "ok": true,
+      "detail": {
+        "mean_kendall_tau": 0.975,
+        "min_tau": 0.867,
+        "top1": "8/8",
+        "max_score_diff": 0.0609,
+        "seconds_for_8_queries": 1.3
+      }
+    }
+  ],
+  "scores": {
+    "qwen3": [
+      [
+        0.9993237853050232,
+        0.2952001392841339,
+        0.013323579914867878,
+        0.9947091937065125,
+        2.1721518351114355e-05,
+        0.7663498520851135
+      ],
+      [
+        0.21814240515232086,
+        0.997329592704773,
+        0.05741467699408531,
+        0.002742338227108121,
+        0.0012073368998244405,
+        0.01653473451733589
+      ],
+      [
+        0.9997233152389526,
+        0.9801709651947021,
+        0.0025310583878308535,
+        0.5620352029800415,
+        7.545637345174327e-05,
+        2.378476710873656e-05
+      ],
+      [
+        0.9916340112686157,
+        0.0009456893312744796,
+        0.9818806648254395,
+        0.0002833855396602303,
+        0.002620413899421692,
+        0.9231426119804382
+      ],
+      [
+        0.9985419511795044,
+        0.9816505312919617,
+        0.8928649425506592,
+        1.1911326510016806e-05,
+        0.9718806147575378,
+        1.0414943062642124e-05
+      ],
+      [
+        0.9994080066680908,
+        0.9988978505134583,
+        6.073752956581302e-05,
+        0.03543940559029579,
+        7.938103954074904e-05,
+        0.0007901516510173678
+      ],
+      [
+        0.9830816984176636,
+        0.74323970079422,
+        0.0006967898807488382,
+        0.0888204425573349,
+        4.076215918757953e-05,
+        0.7100969552993774
+      ],
+      [
+        0.9949741363525391,
+        0.01567971333861351,
+        0.9994345307350159,
+        0.015439243987202644,
+        0.0002080704871332273,
+        0.27371087670326233
+      ]
+    ],
+    "qwen3_seconds": 4.72,
+    "bge": [
+      [
+        0.9897782993821296,
+        0.0038741026405964014,
+        5.6970682410312074e-05,
+        0.24671645354036634,
+        1.6328128369171504e-05,
+        0.007005536559915906
+      ],
+      [
+        0.8691700631588265,
+        0.9984715758221123,
+        0.10392917951419148,
+        0.007689775935230633,
+        0.0027286639683168404,
+        0.04520091665476285
+      ],
+      [
+        0.999670170683791,
+        0.8467034389683847,
+        0.0006541246906050564,
+        0.048974311235743376,
+        0.00011222821497601409,
+        1.604441858141688e-05
+      ],
+      [
+        0.01896284406868991,
+        0.07369138715237156,
+        0.9820762856739821,
+        0.007631831044911368,
+        0.0011021348997339582,
+        0.7370491971182271
+      ],
+      [
+        0.8463613442985647,
+        0.019641171274248276,
+        0.0009709205189809977,
+        1.630520770733483e-05,
+        0.013933418082010823,
+        1.6183413866409406e-05
+      ],
+      [
+        0.9381549246535027,
+        0.890029575720967,
+        1.7874570061253592e-05,
+        0.00010558128473969453,
+        1.6025884598256394e-05,
+        1.7883146363517468e-05
+      ],
+      [
+        0.9631678267118824,
+        0.47775908680784646,
+        0.007872102317864976,
+        0.04714319610738575,
+        1.608417359908806e-05,
+        0.11419884409254369
+      ],
+      [
+        0.39794269516671726,
+        0.00037104145770758306,
+        0.2727386724790209,
+        5.40289090708307e-05,
+        1.9238080168527203e-05,
+        0.04498935161926485
+      ]
+    ],
+    "bge_seconds": 1.3
+  },
+  "ollama": {
+    "version": "0.40.11"
+  },
+  "llama_cpp": "b11980",
+  "logs": {
+    "ollama.log": "  127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:37 | 200 |  27.91ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:38 | 200 |  27.69ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:39 | 200 |  28.78ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:39 | 200 |  25.62ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:40 | 200 |  26.78ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:42 | 200 |  28.84ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:42 | 200 |  27.43ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:43 | 200 |   28.1ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:43 | 200 |  28.74ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:43 | 200 |  29.96ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:43 | 200 |  28.33ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:43 | 200 |  27.14ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:43 | 200 |  26.91ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:44 | 200 |  27.79ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:44 | 404 |  48.98ms |       127.0.0.1 | POST     \"/api/show\"\n[GIN] 2026/11/09 - 06:17:44 | 200 |  49.02\u00b5s |       127.0.0.1 | GET      \"/api/version\"\n[GIN] 2026/11/09 - 06:17:45 | 200 |  38.58ms |       127.0.0.1 | POST     \"/api/show\"\n",
+    "rerankd.log": "k model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF documents=6 ms=574\n2026/11/09 06:17:40 INFO loading reranker model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 pid=156 port=28236\n2026/11/09 06:17:42 INFO reranker ready model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 seconds=2.27\n2026/11/09 06:17:42 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=2541\n2026/11/09 06:17:42 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=186\n2026/11/09 06:17:43 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=183\n2026/11/09 06:17:43 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=143\n2026/11/09 06:17:43 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=142\n2026/11/09 06:17:43 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=175\n2026/11/09 06:17:43 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=168\n2026/11/09 06:17:43 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=164\n2026/11/09 06:17:44 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=155\n2026/11/09 06:17:44 INFO rerank model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 documents=6 ms=156\n2026/11/09 06:17:44 INFO stopping reranker model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF pid=111\n2026/11/09 06:17:44 INFO stopping reranker model=hf.co/gpustack/bge-reranker-v2-m3-GGUF:Q8_0 pid=156\n",
+    "rerankd-ollama-engine.log": "2026/11/09 06:17:44 WARN Ollama version not tested with rerankd version=0.40.11 tested=\"0.40.13 to 0.40.13\"\n2026/11/09 06:17:44 INFO engine llama-server=/opt/ollama/lib/ollama/llama-server\n2026/11/09 06:17:44 INFO rerankd listening address=127.0.0.1:11435 ollama=http://127.0.0.1:11434 version=0.1.0-dev\n2026/11/09 06:17:45 INFO loading reranker model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF pid=221 port=52063\n2026/11/09 06:17:45 INFO reranker ready model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF seconds=0.757\n2026/11/09 06:17:46 INFO rerank model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF documents=6 ms=1418\n2026/11/09 06:17:46 INFO stopping reranker model=hf.co/ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF pid=221\n"
+  },
+  "hardware": "4 CPU",
+  "reference": {
+    "qwen3": [
+      [
+        0.99916,
+        0.284045,
+        0.011742,
+        0.994255,
+        1.8e-05,
+        0.702922
+      ],
+      [
+        0.200196,
+        0.99726,
+        0.053039,
+        0.002358,
+        0.001108,
+        0.014296
+      ],
+      [
+        0.999633,
+        0.980036,
+        0.001994,
+        0.610611,
+        6.9e-05,
+        2.2e-05
+      ],
+      [
+        0.989676,
+        0.000965,
+        0.980256,
+        0.000298,
+        0.002233,
+        0.91603
+      ],
+      [
+        0.998132,
+        0.980585,
+        0.907318,
+        1.2e-05,
+        0.972443,
+        9e-06
+      ],
+      [
+        0.999378,
+        0.998753,
+        3.2e-05,
+        0.04092,
+        5.8e-05,
+        0.000619
+      ],
+      [
+        0.983308,
+        0.740861,
+        0.00062,
+        0.081373,
+        3.7e-05,
+        0.731728
+      ],
+      [
+        0.994727,
+        0.014828,
+        0.999383,
+        0.014167,
+        0.000212,
+        0.253988
+      ]
+    ],
+    "bge": [
+      [
+        0.991882,
+        0.003413,
+        5.6e-05,
+        0.307602,
+        1.6e-05,
+        0.009601
+      ],
+      [
+        0.836647,
+        0.998315,
+        0.104521,
+        0.007533,
+        0.001455,
+        0.045021
+      ],
+      [
+        0.999669,
+        0.825612,
+        0.000646,
+        0.04673,
+        5.8e-05,
+        1.6e-05
+      ],
+      [
+        0.043212,
+        0.046536,
+        0.985954,
+        0.008154,
+        0.001202,
+        0.699016
+      ],
+      [
+        0.87276,
+        0.018947,
+        0.001021,
+        1.6e-05,
+        0.010424,
+        1.6e-05
+      ],
+      [
+        0.945116,
+        0.896998,
+        1.9e-05,
+        0.000132,
+        1.6e-05,
+        1.8e-05
+      ],
+      [
+        0.958179,
+        0.464165,
+        0.005316,
+        0.031501,
+        1.6e-05,
+        0.063924
+      ],
+      [
+        0.343919,
+        0.000362,
+        0.297539,
+        8e-05,
+        2e-05,
+        0.036531
+      ]
+    ]
+  }
+}
