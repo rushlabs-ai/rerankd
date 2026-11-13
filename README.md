@@ -1,5 +1,7 @@
 # rerankd
 
+[![CI](https://github.com/rushlabs-ai/rerankd/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rushlabs-ai/rerankd/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/rushlabs-ai/rerankd)](https://github.com/rushlabs-ai/rerankd/releases/latest) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](https://github.com/rushlabs-ai/rerankd/blob/main/LICENSE)
+
 **Rerank for Ollama.** Ollama has no rerank endpoint ([ollama#3368](https://github.com/ollama/ollama/issues/3368)),
 so apps that call `/api/rerank` or `/v1/rerank` on it get a 404. rerankd sits next to Ollama, answers
 those endpoints with the reranker model you pulled with Ollama, and passes every other request
@@ -13,7 +15,7 @@ your app ──► rerankd :11435 ──► Ollama :11434          (chat, embedd
 - One small static binary, Go standard library only.
 - Uses the model files Ollama already downloaded: rerankd asks Ollama where they are (`/api/show`).
 - Checks a GGUF before loading it, and explains how to fix the common broken Qwen3-Reranker conversions.
-- Scores are 0..1 for every model; Jina/Cohere-style responses.
+- Scores are 0..1 for every model, in Jina/Cohere-style responses.
 
 ## Quick start
 
@@ -71,7 +73,7 @@ behaves differently.
 |---|---|---|
 | Your llama-server (default) | `rerankd` or `rerankd --engine /path/to/llama-server` | Recommended. Starts one llama-server per reranker on demand. |
 | Your running server | `rerankd --backend http://127.0.0.1:8012` | You already run `llama-server --rerank -m model.gguf` yourself. Add `--sigmoid` for BERT-style models. |
-| Ollama's bundled llama-server | `rerankd --use-ollama-engine` | **Experimental.** No separate llama.cpp install. Ollama's bundled build is an internal detail that can change between releases, so rerankd checks that it supports `--rerank` and accepts only Ollama versions it was tested with (0.40.11 to 0.40.13 so far, see the [0.40.11](integration/results/ollama-0.40.11.json), [0.40.12](integration/results/ollama-0.40.12.json) and [0.40.13](integration/results/latest.json) runs; `--allow-untested-ollama` overrides). |
+| Ollama's bundled llama-server | `rerankd --use-ollama-engine` | **Experimental.** No separate llama.cpp install. Ollama's bundled build is an internal detail that can change between releases, so rerankd checks that it supports `--rerank` and accepts only Ollama versions it was tested with (0.40.11 to 0.40.13 so far, see the [0.40.11](integration/results/ollama-0.40.11.json), [0.40.12](integration/results/ollama-0.40.12.json) and [0.40.13](integration/results/latest.json) runs, and `--allow-untested-ollama` overrides the check). |
 
 **GPU memory.** The reranker runs in its own process, which Ollama's scheduler does not see. A 0.6B
 reranker needs well under 1 GB, but on a full GPU use `--gpu-layers 0` to keep it on the CPU, and
@@ -86,7 +88,7 @@ rerankd check ./some-reranker.gguf                           # or a file
 
 Many Qwen3-Reranker GGUFs shared online were converted as plain chat models: they lack the
 classification head (`cls.output.weight`) and the rerank prompt, and give meaningless scores.
-rerankd refuses to load them and says so; re-convert with a current llama.cpp, which detects
+rerankd refuses to load them and says so. Re-convert with a current llama.cpp, which detects
 Qwen3-Reranker, or use one of the models above.
 
 ## Docker and remote Ollama
@@ -120,8 +122,8 @@ container or on another machine, mount the folder and pass `--models-dir /path/t
 - Listens on 127.0.0.1 by default. On loopback it rejects requests whose `Host` is not a local name,
   so a web page cannot reach it (or Ollama behind it) through DNS rebinding.
 - rerankd adds no authentication. If you listen on another interface, anyone who can reach it can
-  use your Ollama; put it behind something that authenticates.
-- Model names are validated strictly; the model file must be an Ollama blob (`sha256-…`); llama-server
+  use your Ollama, so put it behind something that authenticates.
+- Model names are validated strictly, the model file must be an Ollama blob (`sha256-…`), and llama-server
   is started without a shell, bound to 127.0.0.1 on a random port.
 - GGUF headers are parsed with size limits, so a corrupt file cannot exhaust memory.
 
